@@ -1,13 +1,26 @@
 
 
 end_input = '0 0 0.0'
-
+lines = []
 inp = input()
 while inp != end_input:
-    width = float(inp.split()[2])
-    xs = input().split()
-    ys = input().split()
+    lines.append(inp)
     inp = input()
+
+
+def check_if_cut(width, points, end):
+    highest = 0
+    for p in points:
+        if highest < p - width / 2:
+            return False
+        highest = p + width / 2
+    return highest >= end
+
+
+for i in range(0, len(lines), 3):
+    width = float(lines[i].split()[2])
+    xs = lines[i + 1].split()
+    ys = lines[i + 2].split()
 
     xs = [float(x) for x in xs]
     ys = [float(y) for y in ys]
@@ -15,30 +28,7 @@ while inp != end_input:
     xs.sort()
     ys.sort()
 
-    highest = 0
-    print()
-    print(xs)
-    print(ys)
-    for x in xs:
-        print(f"--{highest}**{x}")
-        if x - width/2 > highest:
-            break
-        else:
-            highest = x + width/2
+    if (check_if_cut(width, xs, 75) and check_if_cut(width, ys, 100)):
+        print("YES")
     else:
-        if highest >= 75:
-            print("YES")
-            continue
-    print(f"   highest     {highest}")
-    highest = 0
-    for y in ys:
-        if y - width/2 > highest:
-            break
-        else:
-            highest = y + width/2
-    else:
-        if highest >= 100:
-            print("YES")
-            continue
-    print(f"   highest     {highest}")
-    print("NO")
+        print("NO")
