@@ -70,9 +70,8 @@ class line2():
             if self.a == 0 or self.b == 0:
                 return self.c == line.c
             # one equation will be some multiple of the other
-            return max(self.c, line.c) * min(self.a, line.a) == max(self.a, line.a) * min(self.c, line.c)
+            return self.c * line.a == self.a * line.c
         else:
-            factor = Fraction(1, det)
             x = line.b * self.c - self.b * line.c
             y = - line.a * self.c + self.a * line.c
             point = p(Fraction(x, det), Fraction(y,det))
