@@ -10,8 +10,8 @@ class p():
         self.y = y
 
     # finds the pistance between the current point and p2
-    def distance(self, p2):
-        return math.sqrt((self.x-p2.x)**2 + (self.y-p2.y)**2)
+    def distancesq(self, p2):
+        return (self.x-p2.x)**2 + (self.y-p2.y)**2
 
     def __str__(self):
         return f"({self.x}, {self.y})"
@@ -58,11 +58,9 @@ class line2():
 
     def on(self, p:p):
         try:
-            num = self.a * p.x + self.b * p.y
-            return num == self.c
+            return self.a * p.x + self.b * p.y == self.c
         except TypeError:
-            num = (self.a * p.x.numerator * p.y.denominator + self.b * p.y.numerator * p.x.denominator) / (p.x.denominator * p.y.denominator)
-            return num == self.c
+            return self.a * p.x.numerator * p.y.denominator + self.b * p.y.numerator * p.x.denominator == self.c * p.x.denominator * p.y.denominator
     
     def intersect(self, line):
         # determinant
@@ -72,11 +70,7 @@ class line2():
             if self.a == 0 or self.b == 0:
                 return self.c == line.c
             # one equation will be some multiple of the other
-            # use max to keep it a whole number
-            factor = max(self.a, line.a) / min(self.a, line.a)
-            # return if the equations are the same just scaled, or shifted
-            # scaled means infinite (true), shifted means no solutions (false)
-            return max(self.c, line.c) == factor * min(self.c, line.c)
+            return max(self.c, line.c) * min(self.a, line.a) == max(self.a, line.a) * min(self.c, line.c)
         else:
             factor = Fraction(1, det)
             x = line.b * self.c - self.b * line.c
@@ -101,7 +95,7 @@ class line_segment(line2):
     def __init__(self, p1:p=None, p2:p=None):
         super().__init__(p1, p2)
         if p1 is not None and p2 is not None:
-            self.length = p1.distance(p2)
+            self.lengthsq = p1.distancesq(p2)
             self.minx = min(p1.x, p2.x)
             self.maxx = max(p1.x, p2.x)
             self.miny = min(p1.y, p2.y)
@@ -194,7 +188,7 @@ if __name__ == '__main__':
     # start by checking which points are within range of the treasure
     for pir in pirates:
         # remove pirate it doesnt have enough range
-        if pir.radius.length < pir.treasureline.length:
+        if pir.radius.lengthsq < pir.treasureline.lengthsq:
             pir.can_see = False
             print("not visible")
             continue
