@@ -1,6 +1,6 @@
 import math
 from typing import List
-from fractions import Fraction
+# from fractions import Fraction
 
 # Class to store a point object, (x, y)
 class p():
@@ -16,6 +16,13 @@ class p():
     def __str__(self):
         return f"({self.x}, {self.y})"
 
+class Fraction():
+    def __init__(self, numerator, denominator):
+        self.numerator = numerator
+        self.denominator = denominator
+
+    def __str__(self):
+        return f"{self.numerator}/{self.denominator}"
 
 # class to store a line object
 # uses form ax + by = c
@@ -50,7 +57,12 @@ class line2():
         return perpline
 
     def on(self, p:p):
-        return self.a * p.x + self.b * p.y == self.c
+        try:
+            num = self.a * p.x + self.b * p.y
+            return num == self.c
+        except TypeError:
+            num = (self.a * p.x.numerator * p.y.denominator + self.b * p.y.numerator * p.x.denominator) / (p.x.denominator * p.y.denominator)
+            return num == self.c
     
     def intersect(self, line):
         # determinant
@@ -80,125 +92,6 @@ class line2():
     def __str__(self):
         return f"{self.a}x + {self.b}y = {self.c}"
 
-# class to store a line object
-class line():
-    # create a line object based on two points that it passes through
-    # stores the slope and y-intercept, or if it is vertical or horizontal, stores its respective x or y value
-    def __init__(self, p1:p=None, p2:p=None):
-        if p1 is not None and p2 is not None:
-            # same x means vertical line
-            if p1.x == p2.x:
-                self.v = True
-                self.h = False
-                # this equation would be x = something, and something is equal to the x-value of one of the points
-                self.x = p1.x
-            # same y means horizontal line
-            elif p1.y == p2.y:
-                self.v = False
-                self.h = True
-                # this equation would be y = something, and something is equal to the y-value of one of the points
-                self.y = p1.y
-            # neither vertical or horizontal
-            else:
-                self.v = False
-                self.h = False
-                # slope
-                self.m = fraction(p1.y-p2.y, p1.x-p2.x)
-                # y-intercept
-                self.b = p1.y - p1.x * self.m.get()
-
-    # returns the line that is perpendicular through the 
-    def perp(self, p:p):
-        perpend = line()
-        if self.v:
-            # perpendicular to vertical is horiz
-            perpend.h = True
-            perpend.v = False
-            # get y from point it passes through
-            perpend.y = p.y
-        elif self.h:
-            #perpendicular to horiz is vertical
-            perpend.h = False
-            perpend.v = True
-            # get x from point it passes through
-            perpend.x = p.x
-        else:
-            perpend.v = False
-            perpend.h = False
-            # get negative reciprocal
-            perpend.m = self.m.recip(negative=True)
-            # find y-intercept of line that passes through point p
-            perpend.b = p.y - p.x * perpend.m.get()
-        return perpend
-
-    # returns true or false. True if the point is on the line and false otherwise
-    def on(self, p:p):
-        # if vertical, they just need to share an x-value
-        if self.v:
-            return self.x == p.x
-        # if horizontal, they just need to share a y-value
-        elif self.h:
-            return self.y == p.y
-        else:
-            # plug the points x value into the line. If it is the same (or very very close) return true, false otherwise
-            return abs(p.y - self.plugin(p.x)) < 0.00000001
-
-    # plugs x into y = mx + b
-    def plugin(self, x):
-        return self.m.get() * x + self.b
-
-    # Checks to see if two lines intersect. The return value is sort of strange here:
-    # returns false if they dont intersect, true if they completely overlap, and returns the point if they intersect at one point
-    def intersect(self, line):
-        # both vertical, return if they share the same x-intercept
-        if self.v and line.v:
-            return self.x == line.x
-        # both horizontal, return if they share the same y-intercept
-        elif self.h and line.h:
-            return self.y == line.y
-        # one is vertical, see what the y-value is when the other is hitting it
-        elif self.v:
-            x = self.x
-            y = line.plugin(x)
-        elif line.v:
-            x = line.x
-            y = self.plugin(x)
-        # one is horizontal, see what the x-value is when the other is hitting it
-        elif self.h:
-            y = self.y
-            x = (y - line.b) / line.m.get()
-        elif line.h:
-            y = line.y
-            x = (y - self.b) / self.m.get()
-        # otherwise
-        else:
-            # check if they share a slope (or very close), if so return whether they share a y-intercept
-            if abs(self.m.get() - line.m.get()) < 0.00000001:
-                return abs(self.b - line.b) < 0.00000001
-            # otherwise set eqations equal, solve for x then plugin for y
-            else:
-                x = (self.b - line.b) / (line.m.get() - self.m.get())
-                y = self.plugin(x)
-        return p(x, y)
-
-    # returns whether two points are on the same side of a line. Returns true if either is on the line
-    def same_side(self, p1:p, p2:p):
-        if self.on(p1) or self.on(p2):
-            return True
-        elif self.v:
-            return (p1.x < self.x) == (p2.x < self.x)
-        elif self.h:
-            return (p1.y < self.y) == (p2.y < self.y)
-        else:
-            return (self.plugin(p1.x) > p1.y) == (self.plugin(p2.x) > p2.y)
-        
-    def __str__(self):
-        if self.v:
-            return f"vertical line at x={self.x}"
-        elif self.h:
-            return f"horizontal line at y={self.y}"
-        return f"y = {self.m.get()}x + {self.b}"
-
 # class to store a line segment defined by two points.
 # subclass of line
 class line_segment(line2):
@@ -221,7 +114,17 @@ class line_segment(line2):
             return False
         # otherwise see if it falls within the rectangle created by the line segment, if so, it is on the segment
         # bump the bounds up a little in case floating point problems have occurred
-        return (p.x >= self.minx and p.x <= self.maxx) and (p.y >= self.miny and p.y <= self.maxy)
+        try:
+            return (p.x >= self.minx and p.x <= self.maxx) and (p.y >= self.miny and p.y <= self.maxy)
+        except:
+            if p.x.denominator < 0:
+                p.x.denominator*=-1
+                p.x.numerator*=-1
+            if p.y.denominator < 0:
+                p.y.denominator*=-1
+                p.y.numerator*=-1
+            return (p.x.numerator >= self.minx * p.x.denominator and p.x.numerator <= self.maxx * p.x.denominator) and \
+                    (p.y.numerator >= self.miny * p.y.denominator and p.y.numerator <= self.maxy * p.y.denominator)
 
     # checks if this segment intersects a line
     def intersect_line(self, line):
