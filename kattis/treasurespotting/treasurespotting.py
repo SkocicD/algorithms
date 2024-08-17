@@ -1,6 +1,6 @@
 import math
 from typing import List
-# from fractions import Fraction
+import fractions 
 
 # Class to store a point object, (x, y)
 class p():
@@ -23,6 +23,95 @@ class Fraction():
 
     def __str__(self):
         return f"{self.numerator}/{self.denominator}"
+   
+    def __add__(self, other):
+        if isinstance(other, Fraction):
+            new_numerator = (self.numerator * other.denominator) + (other.numerator * self.denominator)
+            new_denominator = self.denominator * other.denominator
+            return Fraction(new_numerator, new_denominator)
+        elif isinstance(other, int):
+            new_numerator = self.numerator + (other * self.denominator)
+            return Fraction(new_numerator, self.denominator)
+        else:
+            return NotImplemented
+
+    def __mul__(self, other):
+        if isinstance(other, Fraction):
+            new_numerator = self.numerator * other.numerator
+            new_denominator = self.denominator * other.denominator
+            return Fraction(new_numerator, new_denominator)
+        elif isinstance(other, int):
+            new_numerator = self.numerator * other
+            return Fraction(new_numerator, self.denominator)
+        else:
+            return NotImplemented
+
+    def __rmul__(self, other):
+        return self.__mul__(other)
+
+    def __eq__(self, other):
+        if isinstance(other, Fraction):
+            return (self.numerator * other.denominator) == (other.numerator * self.denominator)
+        elif isinstance(other, int):
+            return self.numerator == (other * self.denominator)
+        else:
+            return NotImplemented
+
+    def __lt__(self, other):
+        if self.denominator < 0:
+            self.numerator *= -1
+            self.denominator *= -1
+        if isinstance(other, Fraction):
+            if other.denominator < 0:
+                other.numerator *= -1
+                other.denominator *= -1
+            return self.numerator * other.denominator < other.numerator * self.denominator
+        elif isinstance(other, int):
+            return self.numerator < other * self.denominator
+        else:
+            return NotImplemented
+
+    def __le__(self, other):
+        if self.denominator < 0:
+            self.numerator *= -1
+            self.denominator *= -1
+        if isinstance(other, Fraction):
+            if other.denominator < 0:
+                other.numerator *= -1
+                other.denominator *= -1
+            return self.numerator * other.denominator <= other.numerator * self.denominator
+        elif isinstance(other, int):
+            return self.numerator <= other * self.denominator
+        else:
+            return NotImplemented
+        
+    def __gt__(self, other):
+        if self.denominator < 0:
+            self.numerator *= -1
+            self.denominator *= -1
+        if isinstance(other, Fraction):
+            if other.denominator < 0:
+                other.numerator *= -1
+                other.denominator *= -1
+            return self.numerator * other.denominator > other.numerator * self.denominator
+        elif isinstance(other, int):
+            return self.numerator > other * self.denominator
+        else:
+            return NotImplemented
+
+    def __ge__(self, other):
+        if self.denominator < 0:
+            self.numerator *= -1
+            self.denominator *= -1
+        if isinstance(other, Fraction):
+            if other.denominator < 0:
+                other.numerator *= -1
+                other.denominator *= -1
+            return self.numerator * other.denominator >= other.numerator * self.denominator
+        elif isinstance(other, int):
+            return self.numerator >= other * self.denominator
+        else:
+            return NotImplemented
 
 # class to store a line object
 # uses form ax + by = c
@@ -57,10 +146,7 @@ class line2():
         return perpline
 
     def on(self, p:p):
-        try:
-            return self.a * p.x + self.b * p.y == self.c
-        except TypeError:
-            return self.a * p.x.numerator * p.y.denominator + self.b * p.y.numerator * p.x.denominator == self.c * p.x.denominator * p.y.denominator
+        return self.a * p.x + self.b * p.y == self.c
     
     def intersect(self, line):
         # determinant
@@ -75,6 +161,8 @@ class line2():
             x = line.b * self.c - self.b * line.c
             y = - line.a * self.c + self.a * line.c
             point = p(Fraction(x, det), Fraction(y,det))
+            if point.x < -1000000000 or point.x > 1000000000 or point.y < -1000000000 or point.y > 1000000000:
+                return False
             return point
 
     def same_side(self, p1:p, p2:p):
@@ -107,9 +195,9 @@ class line_segment(line2):
             return False
         # otherwise see if it falls within the rectangle created by the line segment, if so, it is on the segment
         # bump the bounds up a little in case floating point problems have occurred
-        try:
-            return (p.x >= self.minx and p.x <= self.maxx) and (p.y >= self.miny and p.y <= self.maxy)
-        except:
+        # try:
+        return (p.x >= self.minx and p.x <= self.maxx) and (p.y >= self.miny and p.y <= self.maxy)
+        '''except:
             if p.x.denominator < 0:
                 p.x.denominator*=-1
                 p.x.numerator*=-1
@@ -117,7 +205,7 @@ class line_segment(line2):
                 p.y.denominator*=-1
                 p.y.numerator*=-1
             return (p.x.numerator >= self.minx * p.x.denominator and p.x.numerator <= self.maxx * p.x.denominator) and \
-                    (p.y.numerator >= self.miny * p.y.denominator and p.y.numerator <= self.maxy * p.y.denominator)
+                    (p.y.numerator >= self.miny * p.y.denominator and p.y.numerator <= self.maxy * p.y.denominator)'''
 
     # checks if this segment intersects a line
     def intersect_line(self, line):
