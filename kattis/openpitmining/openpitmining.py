@@ -6,7 +6,27 @@ class Node ():
         self.coveredby  = []
         self.valueToPoint = None
 
+    def get_removal_value(self):
+        sum = self.net
+        for node in self.coveredby:
+            sum += node.net
+        return sum
+
 value = 0
+
+# search down the graph until we find a node with a positive removal value
+def search(node):
+    global value
+    valueifremoved = node.get_removal_value()
+    if valueifremoved > 0:
+        value += valueifremoved
+        # remove everything leading up to this node
+        removeAllCovers(node)
+        return True
+    for child in node.covers:
+        if search(child):
+            return True
+    return False
 
 def removeAllCovers(node):
     global nodes
@@ -33,11 +53,13 @@ n = int(input())
 
 nodes = []
 
+# fill in all nodes with their values and the node numbers they point to
 for _ in range(n):
     line = [int(x) for x in input().split()]
     nodes.append(Node(line[0],line[1]))
     for i in range(line[2]):
         nodes[-1].tempcovers.append(line[3 + i])
+
 # tell each node who it covers (by reference) and who covers it
 for node in nodes:
     while len(node.tempcovers) > 0:
@@ -50,16 +72,14 @@ for node in nodes:
         fillcovers(node)
 
 temp = -1
+# while there wasnt an increase in value from one loop to the next
 while temp < value:
     temp = value
     for node in nodes:
-        node.valueToPoint = node.net
-        for parent in node.coveredby:
-            node.valueToPoint += parent.net
-        if node.valueToPoint > 0:
-            removeAllCovers(node)
-            value += node.valueToPoint
-            break
+        # if the rock isnt covered
+        if len(node.coveredby) == 0:
+            if search(node):
+                break
 
 print(value)
 
