@@ -3,7 +3,7 @@ class Node ():
         self.net = value - cost
         self.tempcovers = []
         self.covers = []
-        self.coveredby  = []
+        self.coveredby  = set()
         self.valueToPoint = None
 
     def get_removal_value(self):
@@ -20,52 +20,49 @@ def search(node):
     valueifremoved = node.get_removal_value()
     if valueifremoved > 0:
         value += valueifremoved
-        # remove everything leading up to this node
-        removeAllCovers(node)
-        return True
+        return node
     for child in node.covers:
-        if search(child):
-            return True
-    return False
+        removedNode = search(child)
+        if removedNode is not None:
+            return removedNode
 
 def removeAllCovers(node):
     global nodes
-    while len(node.coveredby) > 0:
-        nodes.remove(node.coveredby.pop())
+    for n in node.coveredby:
+        nodes.remove(n)
     nodes.remove(node)
     for n in nodes:
-        i = 0
-        while i < len (n.coveredby):
-            parent = n.coveredby[i]
+        for parent in n.coveredby:
+            toremove = set()
             if parent not in nodes:
-                n.coveredby.pop(i)
-            else:
-                i += 1
+                toremove.add(parent)
+        for parent in toremove:
+            n.coveredby.remove(parent)
 
 def fillcovers(node):
     for child in node.covers:
         for parent in node.coveredby:
-            if parent not in child.coveredby:
-                child.coveredby.append(parent)
+            child.coveredby.add(parent)
         fillcovers(child)
 
 n = int(input())
 
-nodes = []
+nodes = set()
 
 # fill in all nodes with their values and the node numbers they point to
 for _ in range(n):
     line = [int(x) for x in input().split()]
-    nodes.append(Node(line[0],line[1]))
+    newnode = Node(line[0], line[1])
+    nodes.add(newnode)
     for i in range(line[2]):
-        nodes[-1].tempcovers.append(line[3 + i])
+        newnode.tempcovers.append(line[3 + i])
 
 # tell each node who it covers (by reference) and who covers it
 for node in nodes:
     while len(node.tempcovers) > 0:
         nodenum = node.tempcovers.pop()
         node.covers.append(nodes[nodenum - 1])
-        nodes[nodenum - 1].coveredby.append(node)
+        nodes[nodenum - 1].coveredby.add(node)
 
 for node in nodes:
     if len(node.coveredby) == 0:
@@ -75,11 +72,15 @@ temp = -1
 # while there wasnt an increase in value from one loop to the next
 while temp < value:
     temp = value
+    removedNode = None
     for node in nodes:
         # if the rock isnt covered
         if len(node.coveredby) == 0:
-            if search(node):
+            removedNode = search(node)
+            if removedNode is not None:
                 break
+    if removedNode is not None:
+        removeAllCovers(removedNode)
 
 print(value)
 
