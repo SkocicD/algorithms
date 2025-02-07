@@ -1,0 +1,4 @@
+dijk to get from one prisoner to the other
+propogate the path between the prisoner with the cost to get between them
+change the floorplan for these to be '.'
+now dijk to find an exit
