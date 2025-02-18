@@ -1,20 +1,21 @@
 import math
 
 d, s = [int(x) for x in input().split()]
-lower = 0
-upper = 1000
 
-rhs = math.e + 1/math.e
+def f(a):
+    return a*math.cosh(d/(2*a))-a-s
 
-while upper - lower > .000001:
-    a = lower + (upper - lower)/2
-    print(a)
-    guess = 2 * (a + s) / a * math.e ** (2*a/d)
-    print(guess)
-    if guess >= rhs:
-        upper = a
+
+tol = .000000000001
+diff = 1
+a,b = (d,1000)
+while abs(a-b)>tol:
+    c = (a+b)/2
+    if f(a)*f(c)>0:
+        a = c
     else:
-        lower = a
+        b = c
 
-print(a)
-print(2 * a * math.sinh(d/(2*a)))
+c = (a+b)/2
+print(2*c*math.sinh(d/(2*c)))
+
