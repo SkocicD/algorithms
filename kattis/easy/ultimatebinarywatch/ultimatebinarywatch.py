@@ -1,2 +1,2 @@
-n=[f'{int(x):04b}' for x in input()]
-[print(f'{n[0][i]} {n[1][i]}   {n[2][i]} {n[3][i]}'.replace('0','.').replace('1','*')) for i in range(4)]
+a,b,c,d=[f'{int(x):04b}' for x in input()]
+[print(f'{a[i]} {b[i]}   {c[i]} {d[i]}'.translate({49:42,48:46})) for i in range(4)]
