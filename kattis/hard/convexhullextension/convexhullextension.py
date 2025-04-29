@@ -2,47 +2,43 @@ from fractions import Fraction
 import math
 
 # Class to store a point object, (x, y)
+
+
 class p():
 
     def __init__(self, x, y):
         self.x = x
         self.y = y
 
-    # finds the pistance between the current point and p2
-    def distancesq(self, p2):
-        return (self.x-p2.x)**2 + (self.y-p2.y)**2
-
     def __str__(self):
         return f"({self.x}, {self.y})"
 
-# class to store a line object
-# uses form ax + by = c
+
 class line():
     # create a line object based on two points that it passes through
     # stores the slope and y-intercept, or if it is vertical or horizontal, stores its respective x or y value
-    def __init__(self, p1:p=None, p2:p=None):
-        if p1 is not None and p2 is not None:
-            # same x means vertical line
-            if p1.x == p2.x:
-                self.a = 1
-                self.b = 0
-                self.c = p1.x
-            # same y means horizontal line
-            elif p1.y == p2.y:
-                self.a = 0
-                self.b = 1
-                self.c = p1.y
-            # neither vertical or horizontal
-            else:
-                # slope
-                m = Fraction(p1.y-p2.y, p1.x-p2.x)
-                self.a = -m.numerator
-                self.b = m.denominator
-                self.c = self.a * p1.x + self.b * p1.y
+    def __init__(self, p1: p, p2: p):
+        # same x means vertical line
+        if p1.x == p2.x:
+            self.a = 1
+            self.b = 0
+            self.c = p1.x
+        # same y means horizontal line
+        elif p1.y == p2.y:
+            self.a = 0
+            self.b = 1
+            self.c = p1.y
+        # neither vertical or horizontal
+        else:
+            # slope
+            m = Fraction(p1.y-p2.y, p1.x-p2.x)
+            self.a = -m.numerator
+            self.b = m.denominator
+            self.c = self.a * p1.x + self.b * p1.y
 
-    def on(self, p:p):
+    def on(self, p: p):
         return self.a * p.x + self.b * p.y == self.c
-    
+
     def intersect(self, line):
         # determinant
         det = self.a * line.b - self.b * line.a
@@ -55,62 +51,136 @@ class line():
         else:
             x = line.b * self.c - self.b * line.c
             y = - line.a * self.c + self.a * line.c
-            point = p(Fraction(x, det), Fraction(y,det))
-            if point.x < -1000000000 or point.x > 1000000000 or point.y < -1000000000 or point.y > 1000000000:
-                return False
+            point = p(Fraction(x, det), Fraction(y, det))
             return point
-    
+
+    def perp(self):
+        if self.a == 0:
+            return line(p(0, 0), p(0, 1))
+        if self.b == 0:
+            return line(p(0, 0), p(1, 0))
+        slope = Fraction(self.b, self.a)
+        return line(p(0, 0), p(1, slope))
+
+    def getx(self, y):
+        return (self.c - y * self.b)/self.a
+
+    def gety(self, x):
+        return (self.c - x * self.a)/self.b
+
     def __str__(self):
         return f"{self.a}x + {self.b}y = {self.c}"
 
+
+class line_segment(line):
+    def __init__(self, p1: p, p2: p):
+        super().__init__(p1, p2)
+        self.p1 = p1
+        self.p2 = p2
+        self.min_x = min(p1.x, p2.x)
+        self.min_y = min(p1.y, p2.y)
+        self.max_x = max(p1.x, p2.x)
+        self.max_y = max(p1.y, p2.y)
+
+    def in_x_range(self, x):
+        return x >= self.min_x and x <= self.max_x
+
+    def in_y_range(self, y):
+        return y >= self.min_y and y <= self.max_y
+
+    def length(self):
+        return math.sqrt((self.p1.x-self.p2.x)**2 + (self.p1.y-self.p2.y)**2)
+
+
 class triangle:
-    def __init__(self,p1,p2,p3):
-        self.p1=p1
-        self.p2=p2
-        self.p3=p3
+    def __init__(self, p1, p2, p3):
+        self.ps = [p1, p2, p3]
+        self.lines = [line_segment(self.ps[i-1], self.ps[i])
+                      for i in range(3)]
 
-        self.minx=min(self.p1.x,self.p2.x,self.p3.x)
-        self.miny=min(self.p1.y,self.p2.y,self.p3.y)
-        self.maxx=max(self.p1.x,self.p2.x,self.p3.x)
-        self.maxy=max(self.p1.y,self.p2.y,self.p3.y)
-        self.bounding_rect=rectangle(p(self.minx,self.miny),p(self.maxx,self.maxy))
+        self.minx = min(p1.x, p2.x, p3.x)
+        self.miny = min(p1.y, p2.y, p3.y)
+        self.maxx = max(p1.x, p2.x, p3.x)
+        self.maxy = max(p1.y, p2.y, p3.y)
+        self.xrng = self.maxx-self.minx
+        self.yrng = self.maxy-self.miny
 
-    def divide_bounding_rectangle(self):
-        # break into 3 triangles...
-        # some of these triangles will have two duplicate points
-        # this means they have 0 area, but the intArea is nonzero
-        # also there will be a "fourth" triangle that is just a point
-        # this also has an intArea of 1 assuming its on a discrete point not somewhere in space.
+    def count_added_points(self):
 
-        self.rtri=[]
-        # get the triangle that is the top leftmost point of this triangle,bottom leftmost point, and top leftmost point of bounding rect
-        ps=[self.p1,self.p2,self.p3]
-        tmp=[]
-        for pt in ps:
-            if pt.x==self.minx
-                tmp.append(pt)
+        total = 0
+        if self.xrng < self.yrng:
+            for x in range(math.floor(self.minx), math.ceil(self.maxx)):
+                # the range can go a little above and below.
+                if x <= self.minx or x >= self.maxx:
+                    continue
 
-        
+                ys = []
+                ys = [l.gety(x) for l in self.lines if l.in_x_range(x)]
 
-class rectangle:
-    # defined by two opposite corners
-    def __init__(self,p1,p2):
-        self.p1=p1
-        self.p2=p2
-        self.p3=p(p1.x,p2.y)
-        self.p4=p(p2.x,p1.y)
+                bottom = min(ys) + 1
+                top = max(ys) - 1
 
-    def inclusiveIntArea(self):
-        (math.floor(max(self.p1.x,self.p2.x))-math.ceil(min(self.p1.x,self.p2.x))+1)*(math.floor(max(self.p1.y,self.p2.y))-math.ceil(min(self.p1.y,self.p2.y))+1)
+                # subtract highest and lowest point in the current triangle to get the total number of points inside
+                if math.ceil(top) >= math.floor(bottom):
+                    total += math.ceil(top)-math.floor(bottom) + 1
+        else:
+            for y in range(math.floor(self.miny), math.ceil(self.maxy)):
+                # the range can go a little above and below.
+                if y <= self.miny or y >= self.maxy:
+                    continue
 
-n=int(input())
-ps=[]
-lines=[]
+                xs = [l.getx(y) for l in self.lines if l.in_y_range(y)]
+
+                left = min(xs) + 1
+                right = max(xs) - 1
+
+                # subtract rightmnost and leftmost point in the current triangle to get the total number of points inside
+                if math.ceil(right) >= math.floor(left):
+                    total += math.ceil(right)-math.floor(left) + 1
+
+        return total
+
+    def __str__(self):
+        print(f'triangle defined by {self.p1}, {self.p2}, {self.p3}')
+
+
+n = int(input())
+ps = []
+lines = []
 for _ in range(n):
-    ps.append(p(*list(map(int,input().split()))))
+    ps.append(p(*list(map(int, input().split()))))
 for i in range(n):
-    lines.append(line(ps[i-1],ps[i]))
+    lines.append(line_segment(ps[i-1], ps[i]))
+
+total = 0
+for i in range(n):
+
+    a = lines[i-2].length()
+    b = lines[i-1].length()
+    c = line_segment(ps[i-3], ps[i-1]).length()
+    angle1 = math.acos((a**2+b**2-c**2)/(2*a*b))
+    a = b
+    b = lines[i].length()
+    c = line_segment(ps[i-2], ps[i]).length()
+    angle2 = math.acos((a**2+b**2-c**2)/(2*a*b))
+    if round(angle1+angle2, 10) < round(math.pi, 1):
+        print('infinitely many')
+        exit()
 
 for i in range(n):
-    print(lines[i-2].intersect(lines[i]),end=', ')
-    print(f'{ps[i-2]}, {ps[i-1]}')
+    intersection = lines[i-2].intersect(lines[i])
+    if intersection == False:
+        perp = lines[i].perp()
+        if perp.a == 0 or perp.b == 0:
+            # print(perp, lines[i], lines[i-2])
+            dist = line_segment(lines[i].intersect(
+                perp), lines[i-2].intersect(perp)).length()
+        else:
+            dist = line_segment(lines[i].intersect(
+                perp), lines[i-2].intersect(perp)).length()
+        print(0 if dist <= 1 else 'infinitely many')
+        exit()
+
+    tri = triangle(intersection, ps[i-2], ps[i-1])
+    total += tri.count_added_points()
+print(total)
