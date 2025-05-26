@@ -158,12 +158,17 @@ for i in range(n):
     a = lines[i-2].length()
     b = lines[i-1].length()
     c = line_segment(ps[i-3], ps[i-1]).length()
-    angle1 = math.acos((a**2+b**2-c**2)/(2*a*b))
+    A = (a**2+b**2-c**2)/(2*a*b)
     a = b
     b = lines[i].length()
     c = line_segment(ps[i-2], ps[i]).length()
-    angle2 = math.acos((a**2+b**2-c**2)/(2*a*b))
-    if round(angle1+angle2, 10) < round(math.pi, 1):
+    B = (a**2+b**2-c**2)/(2*a*b)
+    angle = math.acos(A*B-math.sqrt((1-A*A)*(1-B*B)))
+    print(angle)
+    if math.pi < math.2*pi-angle and angle <= 2*math.pi:
+        angle = 2*math.pi-angle
+
+    if angle < math.pi:
         print('infinitely many')
         exit()
 
@@ -172,7 +177,6 @@ for i in range(n):
     if intersection == False:
         perp = lines[i].perp()
         if perp.a == 0 or perp.b == 0:
-            # print(perp, lines[i], lines[i-2])
             dist = line_segment(lines[i].intersect(
                 perp), lines[i-2].intersect(perp)).length()
         else:
@@ -183,4 +187,4 @@ for i in range(n):
 
     tri = triangle(intersection, ps[i-2], ps[i-1])
     total += tri.count_added_points()
-print(total)
+    print(total)

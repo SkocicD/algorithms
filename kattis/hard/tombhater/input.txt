@@ -1,0 +1,8 @@
+5 5 2
+X X A X X
+X X B A X
+X X A B X
+X X B X X
+X X C X X
+AB
+ABC
