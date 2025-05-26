@@ -1,1 +1,6 @@
-hard/convexhullextension/*
+hard/convexhullextension/misc/*
+hard/convexhullextension/outputs/*
+hard/convexhullextension/inputs/*
+hard/convexhullextension/testcases/*
+hard/convexhullextension/icpcdata/*
+hard/convexhullextension/__pycache__/*
