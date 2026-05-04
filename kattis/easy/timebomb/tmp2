@@ -1,0 +1,9 @@
+m = [0xF5, 0x50, 0x67, 0x57, 0xD2, 0x97, 0xB7, 0x54, 0xF7, 0xD7]
+s = []
+while m:
+    k=i=0
+    while n:=m.pop():
+        b = n & 1
+        k |= 7*b << (6*i) if i < 4 else 73*b << 2*(i % 2)+6*(i > 5)
+        i+=1
+    s.append(k)

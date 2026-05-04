@@ -4,3 +4,4 @@ hard/convexhullextension/inputs/*
 hard/convexhullextension/testcases/*
 hard/convexhullextension/icpcdata/*
 hard/convexhullextension/__pycache__/*
+**/samples/**

@@ -1,0 +1,5 @@
+c = [32319, 31, 24253, 22207, 28831, 30391, 32439, 16927, 32447, 30399]
+b = list(map(''.join, zip(*a.split('\n'))))
+while b:
+    print(int(''.join(b[:3]).replace('*', '1').replace(' ', '0'), 2))
+    b = b[4:]
